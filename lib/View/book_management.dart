@@ -4,20 +4,48 @@ import 'package:my_library/controller/book.dart';
 import 'package:my_library/model/book.dart';
 import 'package:my_library/View/add_book.dart';
 import 'package:my_library/View/books.dart';
+import 'package:my_library/View/auth.dart';
 
-class BookManagementApp extends StatelessWidget {
-  const BookManagementApp({super.key});
+import 'package:my_library/Services/auth.dart';
+import 'package:my_library/View/header.dart';
+
+class BookManagementApp extends StatefulWidget {
+  const BookManagementApp({Key? key}) : super(key: key);
+
+  @override
+  _BookManagementAppState createState() => _BookManagementAppState();
+}
+
+class _BookManagementAppState extends State<BookManagementApp> {
+  bool? logged;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  _load() async {
+    logged = await Auth().isLoggedIn();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Book Management',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-      ),
-      home: const BookListPage(),
-    );
+    if (logged == null) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else if (logged == true) {
+      return Scaffold(
+          appBar: MyHeader(),
+          body: const BookListPage(),
+        );
+    } else {
+      return LoginScreen();
+    }
   }
 }
 
@@ -64,10 +92,6 @@ class _BookListPageState extends State<BookListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Book Management'),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
           const SizedBox(height: 20),

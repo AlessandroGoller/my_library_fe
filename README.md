@@ -1,3 +1,7 @@
+# TO DO:
+- add logout
+- 
+
 # To start
 - select device
 - run debug

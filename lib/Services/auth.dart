@@ -10,7 +10,7 @@ class Auth {
   static final Auth _instance = Auth._internal();
   final storage = FlutterSecureStorage();
 
-  late final String _token;
+  String? _token;
 
   // Singleton constructor
   Auth._internal();
@@ -23,6 +23,7 @@ class Auth {
   // Login function to authenticate user and get access token
   Future<Tuple2<bool, String>> loginWithEmailPassword(String email, String password) async {
     try {
+      logout();
       final response = await http.post(
         Uri.parse('${Config().backendBaseUrl}/v1/auth/signin'),
         headers: {'Content-Type': 'application/json'}, // Add Content-Type header
@@ -65,7 +66,7 @@ class Auth {
 
   // Check if the user is logged in
   Future<bool> isLoggedIn() async {
-    const storage = FlutterSecureStorage();
+    final storage = FlutterSecureStorage();
     final token = await storage.read(key: 'access_token');
     if (token != null) {
       return true;
@@ -81,6 +82,7 @@ class Auth {
     {String? name, double? timezone, String? username}
   ) async {
     try {
+      logout();
       final response = await http.post(
         Uri.parse('${Config().backendBaseUrl}/v1/auth/signup'),
         headers: {'Content-Type': 'application/json'},
@@ -109,6 +111,13 @@ class Auth {
       return Tuple2<bool, String>(false, e.toString());
     }
   }
+
+  // Logout
+  Future<void> logout() async {
+    await storage.delete(key: 'access_token');
+  }
+  
+
     /* TODO: return from be time valid and check here if still valid
     // check if the token is still valid if present
     if (token != null) {

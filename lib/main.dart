@@ -26,22 +26,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         // Your theme data
       ),
-      home: FutureBuilder<bool>(
-        future: Auth().isLoggedIn(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator(); // Or a loading indicator
-          } else {
-            if (snapshot.data == true) {
-              FlutterBugfender.log("Book Management App");
-              return BookManagementApp();
-            } else {
-              FlutterBugfender.log("Login Screen");
-              return LoginScreen();
-            }
-          }
-        },
-      ),
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const BookManagementApp(),
+        '/login': (context) => LoginScreen(),
+      },
     );
   }
 }

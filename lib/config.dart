@@ -28,7 +28,8 @@ class Config {
   // Private method to initialize configuration from environment variables
   void _initializeFromEnv() {
     backendServerHost = dotenv.env['BACKEND_SERVER_HOST']!;
-    backendServerPort = int.parse(dotenv.env['BACKEND_SERVER_PORT']!);
-    backendBaseUrl = 'http://$backendServerHost:$backendServerPort';
+    // backendServerPort = int.parse(dotenv.env['BACKEND_SERVER_PORT']!);
+    // backendBaseUrl = 'http://$backendServerHost:$backendServerPort';
+    backendBaseUrl = 'https://$backendServerHost';
   }
 }

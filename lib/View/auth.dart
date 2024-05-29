@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_library/Services/auth.dart';
-
 import 'package:my_library/Services/util.dart';
 import 'book_management.dart';
-
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -13,13 +11,13 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  bool _isLoading = false;
+  bool _isLoading_login = false;
+  bool _isLoading_register = false;
 
   // Function to handle login button press
   Future<void> _login() async {
     setState(() {
-      _isLoading = true;
+      _isLoading_login = true;
     });
 
     try {
@@ -35,7 +33,6 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (context) => BookManagementApp()),
         );
         showCustomDialog(context, 'Succesful Login', '');
-        return;
       } else {
         // Login failed, display error message
         showCustomDialog(context, 'Login Error', result.item2);
@@ -45,13 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
       showCustomDialog(context, 'Login Error', 'Error during connection API\n$e');
     }
     setState(() {
-      _isLoading = false;
+      _isLoading_login = false;
     });
   }
 
   Future<void> _register() async {
     setState(() {
-      _isLoading = true;
+      _isLoading_register = true;
     });
     try {
       final result = await Auth().registerWithEmailPassword(
@@ -66,52 +63,49 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (context) => BookManagementApp()),
         );
         showCustomDialog(context, 'Succesful Registration', '');
-        return;
       } else {
         // Registration failed, display error message
         showCustomDialog(context, 'Registration Error', result.item2);
       }
     } catch (e) {
-      // Handle login error
+      // Handle registration error
       showCustomDialog(context, 'Registration Error', 'Error during connection API\n$e');
     }
     setState(() {
-      _isLoading = false;
+      _isLoading_register = false;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp( // Wrap with MaterialApp
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Login'),
-        ),
-        body: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-              ),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                child: _isLoading ? CircularProgressIndicator() : Text('Login'),
-              ),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _register,
-                child: _isLoading ? CircularProgressIndicator() : Text('Register'),
-              ),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: 'Email'),
+            ),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _isLoading_login ? null : _login,
+              child: _isLoading_login ? CircularProgressIndicator() : Text('Login'),
+            ),
+            ElevatedButton(
+              onPressed: _isLoading_register ? null : _register,
+              child: _isLoading_register ? CircularProgressIndicator() : Text('Register'),
+            ),
+          ],
         ),
       ),
     );
