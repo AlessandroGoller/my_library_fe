@@ -1,12 +1,10 @@
 import 'dart:convert';      // required to encode/decode json data
 import 'package:http/http.dart' as http;
-import 'package:my_library/model/book.dart';
 import 'package:my_library/model/account_book.dart';
 
 import 'package:my_library/model/book_google.dart';
 
 import 'package:my_library/config.dart';
-import 'package:my_library/Services/util.dart';
 import 'package:flutter_bugfender/flutter_bugfender.dart';
 import 'package:my_library/Services/auth.dart';
 
@@ -65,6 +63,26 @@ class Books {
     } catch (e) {
       FlutterBugfender.error("No books found: $e");
       throw Exception('Error in add book');
+    } 
+  }
+
+  Future<AccountBookResponse> editBook(AccountBookResponse accountBookResponse) async {
+    String baseUrl = Config().backendBaseUrl;
+    try{
+      var url = Uri.parse("$baseUrl/v1/account-books/${accountBookResponse.idAccountBook}");
+      final response = await http.put(
+        url,
+        headers: Auth().authHeaders(),
+        body: json.encode(accountBookResponse.toJson()),
+        );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to edit book');
+      }
+      final body = json.decode(response.body);
+      return AccountBookResponse.fromJson(body);
+    } catch (e) {
+      FlutterBugfender.error("No books found: $e");
+      throw Exception('Error in edit book');
     } 
   }
 }

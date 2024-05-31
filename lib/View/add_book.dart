@@ -4,6 +4,8 @@ import 'package:my_library/model/book_google.dart';
 import 'package:my_library/Services/util.dart';
 import 'package:my_library/model/book.dart';
 import 'package:my_library/model/account_book.dart';
+import 'package:my_library/View/book.dart';
+
 
 
 class AddBookView extends StatefulWidget {
@@ -110,57 +112,46 @@ class _AddBookViewState extends State<AddBookView> {
   }
 }
 
-class AddBookPage extends StatelessWidget {
+class AddBookPage extends StatefulWidget {
   final BookGoogle bookGoogle;
 
   AddBookPage({required this.bookGoogle});
 
   @override
+  _AddBookPageState createState() => _AddBookPageState();
+}
+
+class _AddBookPageState extends State<AddBookPage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Aggiungi informazioni a ${bookGoogle.title}'),
+        title: Text('Book: ${widget.bookGoogle.title}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FutureBuilder<AccountBookResponse>(
-              future: Books().addBook(bookGoogle),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('Errore: ${snapshot.error}');
-                } else {
-                  final accountBookResponse = snapshot.data!;
-                  final idAccountBook = accountBookResponse.idAccountBook;
-                  final book = accountBookResponse.book;
-                  final accountBookBasic = accountBookResponse.accountBook;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('ID Account Book: $idAccountBook'),
-                      Text('Titolo del libro: ${book.title}'),
-                      Text('Autore: ${book.author}'),
-                      if (book.cover != null) Image.network(book.cover!), // Mostra la copertina se disponibile
-                      if (accountBookBasic.isFavorite != null)
-                        Text('Preferito: ${accountBookBasic.isFavorite! ? 'Sì' : 'No'}'),
-                      if (accountBookBasic.isWishlist != null)
-                        Text('Nella lista dei desideri: ${accountBookBasic.isWishlist! ? 'Sì' : 'No'}'),
-                      if (accountBookBasic.notes != null) Text('Note: ${accountBookBasic.notes}'),
-                      if (accountBookBasic.rating != null) Text('Valutazione: ${accountBookBasic.rating}'),
-                      if (accountBookBasic.isPhysical != null)
-                        Text('Copia fisica: ${accountBookBasic.isPhysical! ? 'Sì' : 'No'}'),
-                      if (accountBookBasic.readedAt != null) Text('Letto il: ${accountBookBasic.readedAt}'),
-                    ],
-                  );
-                }
-              },
-            ),
-          ],
+        child: FutureBuilder<AccountBookResponse>(
+          future: Books().addBook(widget.bookGoogle),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Errore: ${snapshot.error}'));
+            } else if (snapshot.hasData) {
+              final accountBookResponse = snapshot.data!;
+              /*
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookView(accountBookResponse),
+                ),
+              );
+              */
+              return BookView(accountBookResponse);
+            } else {
+              return Center(child: Text('Nessun dato disponibile'));
+            }
+          },
         ),
       ),
     );

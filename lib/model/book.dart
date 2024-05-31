@@ -28,4 +28,39 @@ class Book {
         storyline = json['storyline'],
         publicationDate = json['publication_date'] != null ? DateTime.parse(json['publication_date']) : null,
         language = json['language'];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'author': author,
+      'genres': genres,
+      'cover': cover,
+      'id_google': idGoogle,
+      'storyline': storyline,
+      'publication_date': publicationDate?.toIso8601String(),
+      'language': language,
+    };
+  }
+
+  Book copyWith({
+    String? title,
+    String? author,
+    String? genres,
+    String? cover,
+    String? idGoogle,
+    String? storyline,
+    DateTime? publicationDate,
+    String? language,
+  }) {
+    return Book(
+      title: title ?? this.title,
+      author: author ?? this.author,
+      genres: genres ?? this.genres,
+      cover: cover ?? this.cover,
+      idGoogle: idGoogle ?? this.idGoogle,
+      storyline: storyline ?? this.storyline,
+      publicationDate: publicationDate ?? this.publicationDate,
+      language: language ?? this.language,
+    );
+  }
 }

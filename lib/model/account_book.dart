@@ -16,6 +16,14 @@ class AccountBookResponse {
       : idAccountBook = json['id_account_book'],
         book = Book.fromJson(json['book']),
         accountBook = AccountBookBasic.fromJson(json['account_book']);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id_account_book': idAccountBook,
+      'book': book.toJson(),
+      'account_book': accountBook.toJson(),
+    };
+  }
 }
 
 
@@ -43,4 +51,32 @@ class AccountBookBasic {
         rating = json['rating'],
         isPhysical = json['is_physical'],
         readedAt = json['readed_at'] != null ? DateTime.parse(json['readed_at']) : null;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'is_favorite': isFavorite,
+      'is_wishlist': isWishlist,
+      'notes': notes,
+      'rating': rating,
+      'is_physical': isPhysical,
+      'readed_at': readedAt?.toIso8601String(),
+    };
+  }
+  AccountBookBasic copyWith({
+    bool? isFavorite,
+    bool? isWishlist,
+    String? notes,
+    int? rating,
+    bool? isPhysical,
+    DateTime? readedAt,
+  }) {
+    return AccountBookBasic(
+      isFavorite: isFavorite ?? this.isFavorite,
+      isWishlist: isWishlist ?? this.isWishlist,
+      notes: notes ?? this.notes,
+      rating: rating ?? this.rating,
+      isPhysical: isPhysical ?? this.isPhysical,
+      readedAt: readedAt ?? this.readedAt,
+    );
+  }
 }
