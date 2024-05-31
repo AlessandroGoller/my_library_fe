@@ -1,11 +1,11 @@
 
 import 'package:flutter/material.dart';
-import '../model/book.dart';
+import 'package:my_library/model/account_book.dart';
 
 class BookView extends StatelessWidget {
-  final Book book;
+  final AccountBookResponse accountBookResponse;
 
-  const BookView(this.book, {Key? key}) : super(key: key);
+  const BookView(this.accountBookResponse, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class BookView extends StatelessWidget {
               width: screenWidth * 0.8,
               height: screenHeight * 0.4,
               child: Image.network(
-                book.coverImageUrl ?? '',
+                accountBookResponse.book.cover ?? '',
                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                   return Image.network(
                     'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
@@ -40,22 +40,20 @@ class BookView extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Text(
-              book.title,
+              accountBookResponse.book.title,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: 10),
-            Text(book.author ?? ''),
+            Text(accountBookResponse.book.author ?? ''),
             SizedBox(height: 10),
-            Text(book.publicationDate?.toString() ?? ''),
+            Text(accountBookResponse.book.publicationDate?.toString() ?? ''),
             SizedBox(height: 10),
-            Text(book.rating?.toString() ?? ''),
+            Text(accountBookResponse.accountBook.rating?.toString() ?? ''),
             SizedBox(height: 10),
-            Text(book.review ?? ''),
-            SizedBox(height: 10),
-            Text(book.notes ?? ''),
+            Text(accountBookResponse.accountBook.notes ?? ''),
           ],
         ),
       ),
@@ -65,9 +63,9 @@ class BookView extends StatelessWidget {
 
 
 class LibraryView extends StatelessWidget {
-  final List<Book> books;
+  final List<AccountBookResponse> accountBookResponses;
 
-  const LibraryView(this.books, {super.key});
+  const LibraryView(this.accountBookResponses, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -83,14 +81,14 @@ class LibraryView extends StatelessWidget {
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
-      itemCount: books.length,
+      itemCount: accountBookResponses.length,
       itemBuilder: (context, index) {
         return GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => BookView(books[index]),
+                builder: (context) => BookView(accountBookResponses[index]),
               ),
             );
           },
@@ -98,7 +96,7 @@ class LibraryView extends StatelessWidget {
             children: [
               Expanded(
                 child: Image.network(
-                  books[index].coverImageUrl ?? '',
+                  accountBookResponses[index].book.cover ?? '',
                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                     return Image.network(
                       'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
@@ -107,7 +105,7 @@ class LibraryView extends StatelessWidget {
                   },
                 ),
               ),
-              Text(books[index].title),
+              Text(accountBookResponses[index].book.title),
             ],
           ),
         );
@@ -117,9 +115,9 @@ class LibraryView extends StatelessWidget {
 }
 
 class TableView extends StatefulWidget {
-  final List<Book> books;
+  final List<AccountBookResponse> accountBookResponses;
 
-  const TableView(this.books, {super.key});
+  const TableView(this.accountBookResponses, {super.key});
 
   @override
   _TableViewState createState() => _TableViewState();
@@ -148,13 +146,13 @@ class _TableViewState extends State<TableView> {
             DataColumn(label: Text('Rating'), onSort: onSort),
           ],
           rows: [
-            for (var book in widget.books)
+            for (var accountBookResponse in widget.accountBookResponses)
               DataRow(cells: [
-                DataCell(Text(book.id.toString())),
-                DataCell(Text(book.title)),
-                DataCell(Text(book.author ?? '')),
-                DataCell(Text(book.publicationDate.toString())),
-                DataCell(Text(book.rating.toString())),
+                DataCell(Text(accountBookResponse.idAccountBook.toString())),
+                DataCell(Text(accountBookResponse.book.title)),
+                DataCell(Text(accountBookResponse.book.author ?? '')),
+                DataCell(Text(accountBookResponse.book.publicationDate.toString())),
+                DataCell(Text(accountBookResponse.accountBook.rating.toString())),
               ])
           ],
         ),
@@ -165,33 +163,33 @@ class _TableViewState extends State<TableView> {
   void onSort(int columnIndex, bool ascending) {
     if (columnIndex == 0) {
       if (ascending) {
-        widget.books.sort((a, b) => (a.id).compareTo(b.id));
+        widget.accountBookResponses.sort((a, b) => (a.idAccountBook).compareTo(b.idAccountBook));
       } else {
-        widget.books.sort((a, b) => (b.id).compareTo(a.id));
+        widget.accountBookResponses.sort((a, b) => (b.idAccountBook).compareTo(a.idAccountBook));
       }
     } else if (columnIndex == 1) {
       if (ascending) {
-        widget.books.sort((a, b) => (a.title).compareTo(b.title));
+        widget.accountBookResponses.sort((a, b) => (a.book.title).compareTo(b.book.title));
       } else {
-        widget.books.sort((a, b) => (b.title).compareTo(a.title));
+        widget.accountBookResponses.sort((a, b) => (b.book.title).compareTo(a.book.title));
       }
     } else if (columnIndex == 2) {
       if (ascending) {
-        widget.books.sort((a, b) => (a.author ?? '').compareTo(b.author ?? ''));
+        widget.accountBookResponses.sort((a, b) => (a.book.author ?? '').compareTo(b.book.author ?? ''));
       } else {
-        widget.books.sort((a, b) => (b.author ?? '').compareTo(a.author ?? ''));
+        widget.accountBookResponses.sort((a, b) => (b.book.author ?? '').compareTo(a.book.author ?? ''));
       }
     } else if (columnIndex == 3) {
       if (ascending) {
-        widget.books.sort((a, b) => (a.publicationDate ?? DateTime(0)).compareTo(b.publicationDate ?? DateTime(0)));
+        widget.accountBookResponses.sort((a, b) => (a.book.publicationDate ?? DateTime(0)).compareTo(b.book.publicationDate ?? DateTime(0)));
       } else {
-        widget.books.sort((a, b) => (b.publicationDate ?? DateTime(0)).compareTo(a.publicationDate ?? DateTime(0)));
+        widget.accountBookResponses.sort((a, b) => (b.book.publicationDate ?? DateTime(0)).compareTo(a.book.publicationDate ?? DateTime(0)));
       }
     } else if (columnIndex == 4) {
       if (ascending) {
-        widget.books.sort((a, b) => (a.rating ?? 0).compareTo(b.rating ?? 0));
+        widget.accountBookResponses.sort((a, b) => (a.accountBook.rating ?? 0).compareTo(b.accountBook.rating ?? 0));
       } else {
-        widget.books.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+        widget.accountBookResponses.sort((a, b) => (b.accountBook.rating ?? 0).compareTo(a.accountBook.rating ?? 0));
       }
     }
 

@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:my_library/controller/book.dart';
-import 'package:my_library/model/book.dart';
+import 'package:my_library/model/account_book.dart';
 import 'package:my_library/View/add_book.dart';
 import 'package:my_library/View/books.dart';
 import 'package:my_library/View/auth.dart';
@@ -58,7 +58,7 @@ class BookListPage extends StatefulWidget {
 
 class _BookListPageState extends State<BookListPage> {
   bool _isLibraryView = true;
-  List<Book> books = [];
+  List<AccountBookResponse> accountBookResponses = [];
   var isLoaded = false;
   String _searchText = '';
 
@@ -69,22 +69,22 @@ class _BookListPageState extends State<BookListPage> {
   }
 
   getData() async {
-    books = await GetBooks().getBooks();
-    if (books.isNotEmpty) {
+    accountBookResponses = await Books().getBooks();
+    if (accountBookResponses.isNotEmpty) {
       setState(() {
         isLoaded = true;
       });
     }
   }
 
-  List<Book> getFilteredBooks() {
+  List<AccountBookResponse> getFilteredBooks() {
     if (_searchText.isEmpty) {
-      return books;
+      return accountBookResponses;
     } else {
-      return books
-          .where((book) =>
-              book.title.toLowerCase().contains(_searchText.toLowerCase()) ||
-              book.author!.toLowerCase().contains(_searchText.toLowerCase()))
+      return accountBookResponses
+          .where((accountBookResponse) =>
+              accountBookResponse.book.title.toLowerCase().contains(_searchText.toLowerCase()) ||
+              accountBookResponse.book.author!.toLowerCase().contains(_searchText.toLowerCase()))
           .toList();
     }
   }

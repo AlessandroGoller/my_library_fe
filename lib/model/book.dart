@@ -1,34 +1,31 @@
 class Book {
-  final int id;
   final String title;
-  final String? author;
-  final String? coverImageUrl;
-  final String? review;
+  final String author;
+  final String? genres;
+  final String? cover;
+  final String? idGoogle;
+  final String? storyline;
   final DateTime? publicationDate;
-  final DateTime? readeddate;
-  final int? rating;
-  final String? notes;
+  final String? language;
 
   Book({
-    required this.id,
     required this.title,
-    this.author,
-    this.coverImageUrl,
-    this.review,
+    required this.author,
+    this.genres,
+    this.cover,
+    this.idGoogle,
+    this.storyline,
     this.publicationDate,
-    this.readeddate,
-    this.rating,
-    this.notes,
+    this.language,
   });
 
   Book.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        title = json['title'].toString(),
+      : title = json['title'],
         author = json['author'],
-        coverImageUrl = json['cover'],
-        review = json['review'],
-        readeddate = json['readeddate'] != null ? DateTime.parse(json['readeddate']) : null,
-        publicationDate = json['publicationDate'] != null ? DateTime.parse(json['publicationDate']) : null,
-        rating = json['rating'] != null ? int.tryParse(json['rating'].toString()) : null,
-        notes = json['notes'];
+        genres = json['genres'],
+        cover = json['cover'],
+        idGoogle = json['id_google'],
+        storyline = json['storyline'],
+        publicationDate = json['publication_date'] != null ? DateTime.parse(json['publication_date']) : null,
+        language = json['language'];
 }

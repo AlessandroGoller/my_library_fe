@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:my_library/controller/book.dart';
+import 'package:my_library/model/book_google.dart';
+import 'package:my_library/Services/util.dart';
+import 'package:my_library/model/book.dart';
+import 'package:my_library/model/account_book.dart';
+
 
 class AddBookView extends StatefulWidget {
   const AddBookView({Key? key}) : super(key: key);
@@ -8,76 +14,152 @@ class AddBookView extends StatefulWidget {
 }
 
 class _AddBookViewState extends State<AddBookView> {
-  String userInput = '';
-  List<Map<String, dynamic>> responseData = [];
-  bool isLoading = false;
+  final TextEditingController _controller = TextEditingController();
+  List<BookGoogle> _books = [];
+  bool _isLoading = false;
 
-  Future<void> cicala_API(String userInput) async {
-    // Simula una chiamata API asincrona
+  Future<void> _searchBook() async {
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
 
-    // Aggiorna la UI con un piccolo ritardo
-    await Future.delayed(Duration(seconds: 2));
+    try {
+      final userInput = _controller.text;
+      final books = await Books().searchBook(userInput);
+      setState(() {
+        _books = books;
+      });
+    } catch (e) {
+      showCustomDialog(context, 'Error in search book', e.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
-    // Simula la risposta dall'API
-    List<Map<String, dynamic>> response = [
-      {'title': 'Libro 1', 'author': 'Autore 1'},
-      {'title': 'Libro 2', 'author': 'Autore 2'},
-      {'title': 'Libro 3', 'author': 'Autore 3'},
-    ];
-
-    setState(() {
-      isLoading = false;
-      responseData = response;
-    });
+  void _openAddBookPage(BookGoogle bookGoogle) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddBookPage(bookGoogle: bookGoogle),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Book'),
-        centerTitle: true,
+        title: Text('Aggiungi un libro'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  userInput = value;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Inserisci il testo',
-                border: OutlineInputBorder(),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      labelText: 'Inserisci il titolo del libro',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: _searchBook,
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                cicala_API(userInput);
-              },
-              child: Text('Invia'),
-            ),
-            SizedBox(height: 16),
-            if (isLoading)
-              CircularProgressIndicator()
-            else if (responseData.isNotEmpty)
+            if (_isLoading) 
+              Center(child: CircularProgressIndicator()),
+            if (!_isLoading && _books.isNotEmpty)
               Expanded(
                 child: ListView.builder(
-                  itemCount: responseData.length,
+                  itemCount: _books.length,
                   itemBuilder: (context, index) {
+                    final book = _books[index];
                     return ListTile(
-                      title: Text(responseData[index]['title']),
-                      subtitle: Text(responseData[index]['author']),
+                      leading: book.imageLinks != null && book.imageLinks!.isNotEmpty
+                          ? Image.network(
+                              book.imageLinks!,
+                              fit: BoxFit.cover,
+                              width: 50,
+                              height: 50,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.error, color: Colors.red);
+                              },
+                            )
+                          : Icon(Icons.book),
+                      title: Text(book.title),
+                      subtitle: Text(book.authors?.join(', ') ?? 'Autore sconosciuto'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () => _openAddBookPage(book),
+                      ),
                     );
                   },
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AddBookPage extends StatelessWidget {
+  final BookGoogle bookGoogle;
+
+  AddBookPage({required this.bookGoogle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Aggiungi informazioni a ${bookGoogle.title}'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FutureBuilder<AccountBookResponse>(
+              future: Books().addBook(bookGoogle),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Errore: ${snapshot.error}');
+                } else {
+                  final accountBookResponse = snapshot.data!;
+                  final idAccountBook = accountBookResponse.idAccountBook;
+                  final book = accountBookResponse.book;
+                  final accountBookBasic = accountBookResponse.accountBook;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ID Account Book: $idAccountBook'),
+                      Text('Titolo del libro: ${book.title}'),
+                      Text('Autore: ${book.author}'),
+                      if (book.cover != null) Image.network(book.cover!), // Mostra la copertina se disponibile
+                      if (accountBookBasic.isFavorite != null)
+                        Text('Preferito: ${accountBookBasic.isFavorite! ? 'Sì' : 'No'}'),
+                      if (accountBookBasic.isWishlist != null)
+                        Text('Nella lista dei desideri: ${accountBookBasic.isWishlist! ? 'Sì' : 'No'}'),
+                      if (accountBookBasic.notes != null) Text('Note: ${accountBookBasic.notes}'),
+                      if (accountBookBasic.rating != null) Text('Valutazione: ${accountBookBasic.rating}'),
+                      if (accountBookBasic.isPhysical != null)
+                        Text('Copia fisica: ${accountBookBasic.isPhysical! ? 'Sì' : 'No'}'),
+                      if (accountBookBasic.readedAt != null) Text('Letto il: ${accountBookBasic.readedAt}'),
+                    ],
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),

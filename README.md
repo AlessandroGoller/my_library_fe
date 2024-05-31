@@ -1,6 +1,8 @@
+flutter run --web-renderer html
+
 # TO DO:
 - add logout
-- 
+- fix token
 
 # To start
 - select device
