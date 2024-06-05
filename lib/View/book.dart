@@ -2,6 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:my_library/model/account_book.dart';
 import 'package:my_library/controller/book.dart';
+import 'package:my_library/controller/tag.dart';
+import 'package:my_library/Services/tag.dart';
+import 'package:my_library/Services/util.dart';
+import 'package:my_library/model/tag.dart';
+
 
 class BookView extends StatefulWidget {
   final AccountBookResponse accountBookResponse;
@@ -13,6 +18,7 @@ class BookView extends StatefulWidget {
 }
 
 class _BookViewState extends State<BookView> {
+  late Future<List<String>> _tagsFuture;
   bool isEditing = false;
   late TextEditingController titleController;
   late TextEditingController authorController;
@@ -20,33 +26,36 @@ class _BookViewState extends State<BookView> {
   late TextEditingController ratingController;
   late TextEditingController notesController;
   late TextEditingController isPhysicalController;
+  late TextEditingController readedatController;
+  late TextEditingController tagsController;
   late AccountBookResponse currentResponse;
+  late List<String> currentTags;
 
   @override
   void initState() {
     super.initState();
     currentResponse = widget.accountBookResponse;
+    _tagsFuture = getBooksTagsByIdAccountBook(currentResponse.idAccountBook);
+    // currentTags = await getBooksTagsByIdAccountBook(currentResponse.idAccountBook);
     titleController = TextEditingController(text: currentResponse.book.title);
     authorController = TextEditingController(text: currentResponse.book.author);
     publicationDateController = TextEditingController(text: currentResponse.book.publicationDate?.toString());
     ratingController = TextEditingController(text: currentResponse.accountBook.rating?.toString());
     notesController = TextEditingController(text: currentResponse.accountBook.notes);
     isPhysicalController = TextEditingController(text: currentResponse.accountBook.isPhysical?.toString());
+    readedatController = TextEditingController(text: currentResponse.accountBook.readedAt?.toString());
+    tagsController = TextEditingController();
   }
 
   void editAccountBook() async {
     AccountBookResponse updatedResponse = AccountBookResponse(
       idAccountBook: currentResponse.idAccountBook,
-      book: currentResponse.book.copyWith(
-        title: titleController.text,
-        author: authorController.text,
-        publicationDate: DateTime.tryParse(publicationDateController.text),
-        cover: currentResponse.book.cover,
-      ),
+      book: currentResponse.book,
       accountBook: currentResponse.accountBook.copyWith(
         rating: int.tryParse(ratingController.text),
         notes: notesController.text,
         isPhysical: isPhysicalController.text.toLowerCase() == 'true',
+        readedAt: DateTime.tryParse(readedatController.text),
       ),
     );
 
@@ -56,13 +65,113 @@ class _BookViewState extends State<BookView> {
       currentResponse = newResponse;
       isEditing = false;
       // Update controllers with new response data
-      titleController.text = currentResponse.book.title;
-      authorController.text = currentResponse.book.author;
       publicationDateController.text = currentResponse.book.publicationDate?.toString() ?? '';
       ratingController.text = currentResponse.accountBook.rating?.toString() ?? '';
       notesController.text = currentResponse.accountBook.notes ?? '';
       isPhysicalController.text = currentResponse.accountBook.isPhysical?.toString() ?? '';
+      readedatController.text = currentResponse.accountBook.readedAt?.toString() ?? '';
     });
+  }
+
+  void deleteBooksTags(String tag) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        bool deleting = false; // Variabile per tracciare lo stato dell'eliminazione
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Delete Tag'),
+              content: deleting ? Center(child: CircularProgressIndicator()) : Text('Are you sure you want to delete this tag: $tag ?'),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Delete'),
+                  onPressed: deleting ? null : () async {
+                    // Imposta lo stato di eliminazione su true
+                    setState(() {
+                      deleting = true;
+                    });
+                    
+                    try {
+                      // Effettua la chiamata di eliminazione
+                      await Tag().deleteBooksTagsByNameTagAndIdAccountBook(tag, currentResponse.idAccountBook);
+                    } catch (e) {
+                      // Gestisci l'errore
+                      showCustomDialog(context, 'Error in deleting tag', e.toString());
+                    }
+                    
+                    // Ripristina lo stato di eliminazione
+                    setState(() {
+                      deleting = false;
+                    });
+                    
+                    Navigator.of(context).pop(); // Rimuovi il dialog
+                    Navigator.pop(context); // Torna alla schermata precedente
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void deleteBook() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Book'),
+          content: Text('Are you sure you want to delete this book?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                // Call the deleteBook function and update the state with the new response.
+                await Books().deleteBook(currentResponse.idAccountBook);
+                Navigator.of(context).pop();
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> addTag() async {
+    String newTag = tagsController.text.trim();
+    if (newTag.isNotEmpty) {
+      try {
+        CreateBooksTags createBooksTags = CreateBooksTags(
+          nameTag: newTag,
+          idAccountBook: currentResponse.idAccountBook,
+        );
+        BooksTagsResponse addedtag = await Tag().addBooksTags(createBooksTags);
+        
+        setState(() {
+          currentTags.add(addedtag.tag.name);
+          tagsController.clear();
+        });
+      } catch (e) {
+        // Handle the error accordingly
+        showCustomDialog(context, 'Error in adding tag', e.toString());
+      }
+    }
   }
 
   @override
@@ -98,69 +207,118 @@ class _BookViewState extends State<BookView> {
                 });
               },
             ),
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                deleteBook();
+              },
+            ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: screenWidth * 0.8,
-              height: screenHeight * 0.4,
-              child: Image.network(
-                currentResponse.book.cover ?? '',
-                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                  return Image.network(
-                    'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
-                    scale: 1.0,
-                  );
-                },
+      body: FutureBuilder<List<String>>(
+        future: _tagsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            currentTags = snapshot.data!;
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: screenWidth * 0.8,
+                    height: screenHeight * 0.4,
+                    child: Image.network(
+                      currentResponse.book.cover ?? '',
+                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                        return Image.network(
+                          'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
+                          scale: 1.0,
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    currentResponse.book.title,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(currentResponse.book.author ?? ''),
+                  SizedBox(height: 10),
+                  Text(currentResponse.book.publicationDate?.toString() ?? ''),
+                  SizedBox(height: 10),
+                  isEditing
+                      ? Column(
+                          children: [
+                            Wrap(
+                              children: currentTags
+                                  .map((tag) => Chip(
+                                        label: Text(tag),
+                                        deleteIcon: Icon(Icons.close),
+                                        onDeleted: () => deleteBooksTags(tag),
+                                      ))
+                                  .toList(),
+                            ),
+                            TextField(
+                              controller: tagsController,
+                              decoration: InputDecoration(labelText: 'Add Tag'),
+                              onSubmitted: (_) => addTag(),
+                            ),
+                            ElevatedButton(
+                              onPressed: addTag,
+                              child: Text('Add Tag'),
+                            ),
+                          ],
+                        )
+                      : Wrap(
+                        children: currentTags
+                            .map((tag) => Chip(label: Text(tag)))
+                            .toList(),
+                      ),
+                  SizedBox(height: 10),
+                  isEditing
+                      ? TextField(
+                          controller: ratingController,
+                          decoration: InputDecoration(labelText: 'Rating'),
+                        )
+                      : Text('Rating: ${currentResponse.accountBook.rating?.toString() ?? ''}'),
+                  SizedBox(height: 10),
+                  isEditing
+                      ? TextField(
+                          controller: notesController,
+                          decoration: InputDecoration(labelText: 'Notes'),
+                        )
+                      : Text('Notes: ${currentResponse.accountBook.notes ?? ''}'),
+                  SizedBox(height: 10),
+                  isEditing
+                      ? TextField(
+                          controller: isPhysicalController,
+                          decoration: InputDecoration(labelText: 'is physical'),
+                        )
+                      : Text('Is Physical? : ${currentResponse.accountBook.isPhysical ?? ''}'),
+                  SizedBox(height: 10),
+                  isEditing
+                      ? TextField(
+                          controller: readedatController,
+                          decoration: InputDecoration(labelText: 'Readed At'),
+                        )
+                      : Text('Readed At: ${currentResponse.accountBook.readedAt?.toString() ?? ''}'),
+                ],
               ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              currentResponse.book.title,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(currentResponse.book.author ?? ''),
-            SizedBox(height: 10),
-            Text(currentResponse.book.publicationDate?.toString() ?? ''),
-            SizedBox(height: 10),
-            isEditing
-                ? TextField(
-                    controller: ratingController,
-                    decoration: InputDecoration(labelText: 'Rating'),
-                  )
-                : Text('Rating: ${currentResponse.accountBook.rating?.toString() ?? ''}'),
-            SizedBox(height: 10),
-            isEditing
-                ? TextField(
-                    controller: notesController,
-                    decoration: InputDecoration(labelText: 'Notes'),
-                  )
-                : Text('Notes: ${currentResponse.accountBook.notes ?? ''}'),
-            SizedBox(height: 10),
-            isEditing
-                ? TextField(
-                    controller: isPhysicalController,
-                    decoration: InputDecoration(labelText: 'is physical'),
-                  )
-                : Text('Is Physical? : ${currentResponse.accountBook.isPhysical ?? ''}'),
-          ],
-        ),
-      ),
+            );
+          }
+        }
+      )
     );
   }
 }
-
-
-
-
-
 
 class LibraryView extends StatelessWidget {
   final List<AccountBookResponse> accountBookResponses;

@@ -1,11 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:my_library/controller/book.dart';
 import 'package:my_library/model/account_book.dart';
 import 'package:my_library/View/add_book.dart';
 import 'package:my_library/View/book.dart';
 import 'package:my_library/View/auth.dart';
-
+import 'package:my_library/Services/util.dart';
 import 'package:my_library/Services/auth.dart';
 import 'package:my_library/View/header.dart';
 
@@ -40,9 +39,9 @@ class _BookManagementAppState extends State<BookManagementApp> {
       );
     } else if (logged == true) {
       return Scaffold(
-          appBar: MyHeader(),
-          body: const BookListPage(),
-        );
+        appBar: MyHeader(),
+        body: const BookListPage(),
+      );
     } else {
       return LoginScreen();
     }
@@ -63,17 +62,22 @@ class _BookListPageState extends State<BookListPage> {
   String _searchText = '';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     getData();
   }
 
   getData() async {
-    accountBookResponses = await Books().getBooks();
-    if (accountBookResponses.isNotEmpty) {
-      setState(() {
-        isLoaded = true;
-      });
+    try {
+      accountBookResponses = await Books().getBooks();
+    
+      if (accountBookResponses.isNotEmpty) {
+        setState(() {
+          isLoaded = true;
+        });
+      }
+    } catch (e) {
+      showCustomDialog(context, 'Error in getting books', e.toString());
     }
   }
 
@@ -142,14 +146,29 @@ class _BookListPageState extends State<BookListPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddBookView()),
-          );
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 16,
+            left: 16,
+            child: FloatingActionButton(
+              onPressed: getData,
+              child: const Icon(Icons.refresh),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddBookView()),
+                );
+              },
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,6 @@
 class Book {
   final String title;
-  final String author;
+  final String? author;
   final String? genres;
   final String? cover;
   final String? idGoogle;

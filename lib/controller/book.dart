@@ -16,7 +16,7 @@ class Books {
       final response = await http.get(
         url,
         headers: Auth().authHeaders(),
-        );
+      );
       if (response.statusCode != 200) {
         throw Exception('Failed to load books');
       }
@@ -24,7 +24,7 @@ class Books {
       return body.map((e) => AccountBookResponse.fromJson(e)).toList();
     } catch (e) {
       FlutterBugfender.error("No books found: $e");
-      return [];
+      throw Exception('Error in loading books');
     } 
   }
 
@@ -73,7 +73,7 @@ class Books {
       final response = await http.put(
         url,
         headers: Auth().authHeaders(),
-        body: json.encode(accountBookResponse.toJson()),
+        body: json.encode(accountBookResponse.accountBook.toJson()),
         );
       if (response.statusCode != 200) {
         throw Exception('Failed to edit book');
@@ -83,6 +83,23 @@ class Books {
     } catch (e) {
       FlutterBugfender.error("No books found: $e");
       throw Exception('Error in edit book');
+    } 
+  }
+
+  Future<void> deleteBook(int idAccountBook) async {
+    String baseUrl = Config().backendBaseUrl;
+    try{
+      var url = Uri.parse("$baseUrl/v1/account-books/$idAccountBook");
+      final response = await http.delete(
+        url,
+        headers: Auth().authHeaders(),
+        );
+      if (response.statusCode != 204) {
+        throw Exception('Failed to delete book');
+      }
+    } catch (e) {
+      FlutterBugfender.error("No books found: $e");
+      throw Exception('Error in delete book');
     } 
   }
 }
