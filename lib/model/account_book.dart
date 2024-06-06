@@ -24,6 +24,18 @@ class AccountBookResponse {
       'account_book': accountBook.toJson(),
     };
   }
+
+  AccountBookResponse copyWith({
+    int? idAccountBook,
+    Book? book,
+    AccountBookBasic? accountBook,
+  }) {
+    return AccountBookResponse(
+      idAccountBook: idAccountBook ?? this.idAccountBook,
+      book: book ?? this.book,
+      accountBook: accountBook ?? this.accountBook,
+    );
+  }
 }
 
 

@@ -6,6 +6,7 @@ import 'package:my_library/controller/tag.dart';
 import 'package:my_library/Services/tag.dart';
 import 'package:my_library/Services/util.dart';
 import 'package:my_library/model/tag.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 
 class BookView extends StatefulWidget {
@@ -36,7 +37,6 @@ class _BookViewState extends State<BookView> {
     super.initState();
     currentResponse = widget.accountBookResponse;
     _tagsFuture = getBooksTagsByIdAccountBook(currentResponse.idAccountBook);
-    // currentTags = await getBooksTagsByIdAccountBook(currentResponse.idAccountBook);
     titleController = TextEditingController(text: currentResponse.book.title);
     authorController = TextEditingController(text: currentResponse.book.author);
     publicationDateController = TextEditingController(text: currentResponse.book.publicationDate?.toString());
@@ -59,12 +59,10 @@ class _BookViewState extends State<BookView> {
       ),
     );
 
-    // Call the editBook function and update the state with the new response.
     AccountBookResponse newResponse = await Books().editBook(updatedResponse);
     setState(() {
       currentResponse = newResponse;
       isEditing = false;
-      // Update controllers with new response data
       publicationDateController.text = currentResponse.book.publicationDate?.toString() ?? '';
       ratingController.text = currentResponse.accountBook.rating?.toString() ?? '';
       notesController.text = currentResponse.accountBook.notes ?? '';
@@ -77,13 +75,15 @@ class _BookViewState extends State<BookView> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        bool deleting = false; // Variabile per tracciare lo stato dell'eliminazione
-        
+        bool deleting = false;
+
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               title: Text('Delete Tag'),
-              content: deleting ? Center(child: CircularProgressIndicator()) : Text('Are you sure you want to delete this tag: $tag ?'),
+              content: deleting
+                  ? Center(child: CircularProgressIndicator())
+                  : Text('Are you sure you want to delete this tag: $tag ?'),
               actions: [
                 TextButton(
                   child: Text('Cancel'),
@@ -93,28 +93,26 @@ class _BookViewState extends State<BookView> {
                 ),
                 TextButton(
                   child: Text('Delete'),
-                  onPressed: deleting ? null : () async {
-                    // Imposta lo stato di eliminazione su true
-                    setState(() {
-                      deleting = true;
-                    });
-                    
-                    try {
-                      // Effettua la chiamata di eliminazione
-                      await Tag().deleteBooksTagsByNameTagAndIdAccountBook(tag, currentResponse.idAccountBook);
-                    } catch (e) {
-                      // Gestisci l'errore
-                      showCustomDialog(context, 'Error in deleting tag', e.toString());
-                    }
-                    
-                    // Ripristina lo stato di eliminazione
-                    setState(() {
-                      deleting = false;
-                    });
-                    
-                    Navigator.of(context).pop(); // Rimuovi il dialog
-                    Navigator.pop(context); // Torna alla schermata precedente
-                  },
+                  onPressed: deleting
+                      ? null
+                      : () async {
+                          setState(() {
+                            deleting = true;
+                          });
+
+                          try {
+                            await Tag().deleteBooksTagsByNameTagAndIdAccountBook(tag, currentResponse.idAccountBook);
+                          } catch (e) {
+                            showCustomDialog(context, 'Error in deleting tag', e.toString());
+                          }
+
+                          setState(() {
+                            deleting = false;
+                          });
+
+                          Navigator.of(context).pop();
+                          Navigator.pop(context);
+                        },
                 ),
               ],
             );
@@ -128,26 +126,48 @@ class _BookViewState extends State<BookView> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Book'),
-          content: Text('Are you sure you want to delete this book?'),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Delete'),
-              onPressed: () async {
-                // Call the deleteBook function and update the state with the new response.
-                await Books().deleteBook(currentResponse.idAccountBook);
-                Navigator.of(context).pop();
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        bool deleting = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Delete Book'),
+              content: deleting
+                  ? Center(child: CircularProgressIndicator())
+                  : Text('Are you sure you want to delete this book?'),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Delete'),
+                  onPressed: deleting
+                      ? null
+                      : () async {
+                          setState(() {
+                            deleting = true;
+                          });
+
+                          try {
+                            await Books().deleteBook(currentResponse.idAccountBook);
+                          } catch (e) {
+                            showCustomDialog(context, 'Error in deleting Book', e.toString());
+                          }
+
+                          setState(() {
+                            deleting = false;
+                          });
+
+                          Navigator.of(context).pop();
+                          Navigator.pop(context);
+                        },
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -162,13 +182,12 @@ class _BookViewState extends State<BookView> {
           idAccountBook: currentResponse.idAccountBook,
         );
         BooksTagsResponse addedtag = await Tag().addBooksTags(createBooksTags);
-        
+
         setState(() {
           currentTags.add(addedtag.tag.name);
           tagsController.clear();
         });
       } catch (e) {
-        // Handle the error accordingly
         showCustomDialog(context, 'Error in adding tag', e.toString());
       }
     }
@@ -207,12 +226,12 @@ class _BookViewState extends State<BookView> {
                 });
               },
             ),
-            IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                deleteBook();
-              },
-            ),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              deleteBook();
+            },
+          ),
         ],
       ),
       body: FutureBuilder<List<String>>(
@@ -224,98 +243,145 @@ class _BookViewState extends State<BookView> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             currentTags = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: screenWidth * 0.8,
-                    height: screenHeight * 0.4,
-                    child: Image.network(
-                      currentResponse.book.cover ?? '',
-                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                        return Image.network(
-                          'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
-                          scale: 1.0,
-                        );
+            return Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 40),
+                    SizedBox(
+                      width: screenWidth * 0.4,
+                      height: screenHeight * 0.3,
+                      child: Image.network(
+                        currentResponse.book.cover ?? '',
+                        fit: BoxFit.cover,
+                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                          return Image.network(
+                            'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
+                            scale: 1.0,
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      currentResponse.book.title,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      currentResponse.book.author ?? '',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Published: ${currentResponse.book.publicationDate?.day.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.month.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.year}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 10),
+                    isEditing
+                        ? Column(
+                            children: [
+                              Wrap(
+                                children: currentTags
+                                    .map((tag) => Chip(
+                                          label: Text(tag),
+                                          deleteIcon: Icon(Icons.close),
+                                          onDeleted: () => deleteBooksTags(tag),
+                                        ))
+                                    .toList(),
+                              ),
+                              TextField(
+                                controller: tagsController,
+                                decoration: InputDecoration(labelText: 'Add Tag'),
+                                onSubmitted: (_) => addTag(),
+                              ),
+                              ElevatedButton(
+                                onPressed: addTag,
+                                child: Text('Add Tag'),
+                              ),
+                            ],
+                          )
+                        : Wrap(
+                            children: currentTags
+                                .map((tag) => Chip(label: Text(tag)))
+                                .toList(),
+                                                        ),
+                    SizedBox(height: 10),
+                    RatingBar.builder(
+                      initialRating: currentResponse.accountBook.rating?.toDouble() ?? 0,
+                      minRating: 1,
+                      direction: Axis.horizontal,
+                      allowHalfRating: false,
+                      itemCount: 5,
+                      itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                      ignoreGestures: !isEditing,  // Disabilita le modifiche quando non è in modalità di modifica
+                      itemBuilder: (context, _) => Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                      ),
+                      onRatingUpdate: (rating) {
+                        if (isEditing) {
+                          setState(() {
+                            currentResponse = currentResponse.copyWith(
+                              accountBook: currentResponse.accountBook.copyWith(rating: rating.toInt()),
+                            );
+                          });
+                        }
                       },
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    currentResponse.book.title,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(currentResponse.book.author ?? ''),
-                  SizedBox(height: 10),
-                  Text(currentResponse.book.publicationDate?.toString() ?? ''),
-                  SizedBox(height: 10),
-                  isEditing
-                      ? Column(
-                          children: [
-                            Wrap(
-                              children: currentTags
-                                  .map((tag) => Chip(
-                                        label: Text(tag),
-                                        deleteIcon: Icon(Icons.close),
-                                        onDeleted: () => deleteBooksTags(tag),
-                                      ))
-                                  .toList(),
-                            ),
-                            TextField(
-                              controller: tagsController,
-                              decoration: InputDecoration(labelText: 'Add Tag'),
-                              onSubmitted: (_) => addTag(),
-                            ),
-                            ElevatedButton(
-                              onPressed: addTag,
-                              child: Text('Add Tag'),
-                            ),
-                          ],
-                        )
-                      : Wrap(
-                        children: currentTags
-                            .map((tag) => Chip(label: Text(tag)))
-                            .toList(),
-                      ),
-                  SizedBox(height: 10),
-                  isEditing
-                      ? TextField(
-                          controller: ratingController,
-                          decoration: InputDecoration(labelText: 'Rating'),
-                        )
-                      : Text('Rating: ${currentResponse.accountBook.rating?.toString() ?? ''}'),
-                  SizedBox(height: 10),
-                  isEditing
-                      ? TextField(
-                          controller: notesController,
-                          decoration: InputDecoration(labelText: 'Notes'),
-                        )
-                      : Text('Notes: ${currentResponse.accountBook.notes ?? ''}'),
-                  SizedBox(height: 10),
-                  isEditing
-                      ? TextField(
-                          controller: isPhysicalController,
-                          decoration: InputDecoration(labelText: 'is physical'),
-                        )
-                      : Text('Is Physical? : ${currentResponse.accountBook.isPhysical ?? ''}'),
-                  SizedBox(height: 10),
-                  isEditing
-                      ? TextField(
-                          controller: readedatController,
-                          decoration: InputDecoration(labelText: 'Readed At'),
-                        )
-                      : Text('Readed At: ${currentResponse.accountBook.readedAt?.toString() ?? ''}'),
-                ],
+                    SizedBox(height: 10),
+                    isEditing
+                        ? TextField(
+                            controller: notesController,
+                            decoration: InputDecoration(labelText: 'Notes'),
+                          )
+                        : Text(
+                            'Notes: ${currentResponse.accountBook.notes ?? ''}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                    SizedBox(height: 10),
+                    isEditing
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Is Physical: '),
+                              Checkbox(
+                                value: currentResponse.accountBook.isPhysical,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    currentResponse = currentResponse.copyWith(
+                                      accountBook: currentResponse.accountBook.copyWith(isPhysical: value ?? false),
+                                    );
+                                  });
+                                },
+                              ),
+                            ],
+                          )
+                        : Text(
+                            'Is Physical?: ${currentResponse.accountBook.isPhysical == true ? '✔️' : '❌'}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                    SizedBox(height: 10),
+                    isEditing
+                        ? TextField(
+                            controller: readedatController,
+                            decoration: InputDecoration(labelText: 'Readed At'),
+                          )
+                        : Text(
+                            'Readed At: ${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                  ],
+                ),
               ),
             );
           }
-        }
-      )
+        },
+      ),
     );
   }
 }
