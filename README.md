@@ -1,3 +1,8 @@
+# About This Repository
+
+Please note that I am not a front-end developer. This repository has been created primarily for the purpose of using and testing the backend. As such, the front-end code may not reflect best practices or standards in front-end development. Your understanding and patience are appreciated.
+
+
 flutter run --web-renderer html
 
 # TO DO:

@@ -31,6 +31,7 @@ class _BookViewState extends State<BookView> {
   late TextEditingController tagsController;
   late AccountBookResponse currentResponse;
   late List<String> currentTags;
+  late DateTime selectedDate;
 
   @override
   void initState() {
@@ -43,8 +44,23 @@ class _BookViewState extends State<BookView> {
     ratingController = TextEditingController(text: currentResponse.accountBook.rating?.toString());
     notesController = TextEditingController(text: currentResponse.accountBook.notes);
     isPhysicalController = TextEditingController(text: currentResponse.accountBook.isPhysical?.toString());
-    readedatController = TextEditingController(text: currentResponse.accountBook.readedAt?.toString());
+    selectedDate = currentResponse.accountBook.readedAt ?? DateTime.now();
+    readedatController = TextEditingController(text: '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}');
     tagsController = TextEditingController();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+        readedatController.text = '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}';
+      });
   }
 
   void editAccountBook() async {
@@ -367,9 +383,13 @@ class _BookViewState extends State<BookView> {
                           ),
                     SizedBox(height: 10),
                     isEditing
-                        ? TextField(
-                          controller: readedatController..text = '${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
+                      ? TextField(
+                          controller: readedatController,
                           decoration: InputDecoration(labelText: 'Readed At'),
+                          readOnly: true,
+                          onTap: () async {
+                            await _selectDate(context);
+                          },
                         )
                       : Text(
                           'Readed At: ${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
