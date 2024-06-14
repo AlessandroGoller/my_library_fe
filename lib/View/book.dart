@@ -368,13 +368,13 @@ class _BookViewState extends State<BookView> {
                     SizedBox(height: 10),
                     isEditing
                         ? TextField(
-                            controller: readedatController,
-                            decoration: InputDecoration(labelText: 'Readed At'),
-                          )
-                        : Text(
-                            'Readed At: ${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
-                            style: TextStyle(fontSize: 18),
-                          ),
+                          controller: readedatController..text = '${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
+                          decoration: InputDecoration(labelText: 'Readed At'),
+                        )
+                      : Text(
+                          'Readed At: ${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
+                          style: TextStyle(fontSize: 18),
+                        ),
                   ],
                 ),
               ),
