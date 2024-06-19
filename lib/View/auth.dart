@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (context) => BookManagementApp()),
         );
-        showCustomDialog(context, 'Succesful Registration', '');
+        showCustomDialog(context, 'Succesful Registration\nPlease confirm your account from the email', '');
       } else {
         // Registration failed, display error message
         showCustomDialog(context, 'Registration Error', result.item2);

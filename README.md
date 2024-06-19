@@ -6,8 +6,8 @@ Please note that I am not a front-end developer. This repository has been create
 flutter run --web-renderer html
 
 # TO DO:
+- tema nero
 - add logout
-- fix token
 
 # To start
 - select device
