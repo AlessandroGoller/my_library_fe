@@ -618,7 +618,18 @@ class _TableViewState extends State<TableView> {
             for (var accountBookResponse in widget.accountBookResponses)
               DataRow(cells: [
                 DataCell(Text(accountBookResponse.idAccountBook.toString())),
-                DataCell(Text(accountBookResponse.book.title)),
+                DataCell(
+                    Text(accountBookResponse.book.title),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BookView(accountBookResponse),
+                        ),
+                      );
+                    },
+                  ),
+                // DataCell(Text(accountBookResponse.book.title)),
                 DataCell(Text(accountBookResponse.book.author ?? '')),
                 DataCell(Text(accountBookResponse.book.publicationDate.toString())),
                 DataCell(Text(accountBookResponse.accountBook.rating.toString())),
