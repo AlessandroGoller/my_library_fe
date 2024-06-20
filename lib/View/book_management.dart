@@ -85,11 +85,12 @@ class _BookListPageState extends State<BookListPage> {
     if (_searchText.isEmpty) {
       return accountBookResponses;
     } else {
-      return accountBookResponses
-          .where((accountBookResponse) =>
-              accountBookResponse.book.title.toLowerCase().contains(_searchText.toLowerCase()) ||
-              accountBookResponse.book.author!.toLowerCase().contains(_searchText.toLowerCase()))
-          .toList();
+      return accountBookResponses.where((accountBookResponse) {
+        final book = accountBookResponse.book;
+        final titleMatch = book.title.toLowerCase().contains(_searchText.toLowerCase());
+        final authorMatch = book.author?.toLowerCase().contains(_searchText.toLowerCase()) ?? false;
+        return titleMatch || authorMatch;
+      }).toList();
     }
   }
 
