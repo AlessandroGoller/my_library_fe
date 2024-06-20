@@ -7,7 +7,8 @@ import 'package:my_library/Services/tag.dart';
 import 'package:my_library/Services/util.dart';
 import 'package:my_library/model/tag.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:flutter_tags/flutter_tags.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 
 class BookView extends StatefulWidget {
@@ -53,6 +54,31 @@ class _BookViewState extends State<BookView> {
     readedatController = TextEditingController(text: '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}');
     tagsController = TextEditingController();
   }
+
+  void _showStorylineDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Trama'),
+          content: SingleChildScrollView(
+            child: HtmlWidget(
+              HtmlUnescape().convert(currentResponse.book.storyline ?? ''),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text('Chiudi'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   void toggleTagVisibility() {
     setState(() {
@@ -353,8 +379,6 @@ class _BookViewState extends State<BookView> {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No tags available'));
         } else {
           currentTags = snapshot.data ?? [];
           return Center(
@@ -394,6 +418,11 @@ class _BookViewState extends State<BookView> {
                   Text(
                     'Published: ${currentResponse.book.publicationDate?.day.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.month.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.year}',
                     style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _showStorylineDialog,
+                    child: Text('Mostra Trama'),
                   ),
                   SizedBox(height: 10),
                   Wrap(

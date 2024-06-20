@@ -6,15 +6,11 @@ PODS:
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_bugfender (from `.symlinks/plugins/flutter_bugfender/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
 
 SPEC REPOS:
   trunk:
@@ -27,15 +23,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_bugfender/ios"
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
 
 SPEC CHECKSUMS:
   BugfenderSDK: 0eb1675df86a1792ec9ab8984369e85464f851cb
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_bugfender: c84c57981007416543532c27a6509b04935773c9
-  flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
