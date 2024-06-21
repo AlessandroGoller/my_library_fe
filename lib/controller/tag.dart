@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:my_library/config.dart';
 import 'package:flutter_bugfender/flutter_bugfender.dart';
-import 'package:my_library/model/book.dart';
 
 import 'package:my_library/model/tag.dart';
 import 'package:my_library/Services/auth.dart';
