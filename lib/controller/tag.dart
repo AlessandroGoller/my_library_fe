@@ -126,7 +126,7 @@ class Tag {
         );
 
       if (response.statusCode != 201) {
-        throw Exception('Failed to add books tags');
+        throw Exception('Failed to add books tags\nProbably Tag already exists');
       }
       final body = json.decode(response.body);
       return BooksTagsResponse.fromJson(body);
