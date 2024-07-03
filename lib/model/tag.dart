@@ -1,5 +1,6 @@
 
 import 'package:my_library/model/account_book.dart';
+import 'dart:convert';
 
 class TagResponse {
   final int idTag;
@@ -16,6 +17,27 @@ class TagResponse {
       : idTag = json['id_tag'],
         name = json['name'],
         createdAt = DateTime.parse(json['created_at']);
+  
+  Map<String, dynamic> toMap() {
+    return {
+      'id_tag': idTag,
+      'name': name,
+      'created_at': createdAt,
+    };
+  }
+
+  String serialize() {
+    return jsonEncode({
+      'id_tag': idTag,
+      'name': name,
+      'created_at': createdAt.toIso8601String(),
+    });
+  }
+
+  static TagResponse deserialize(String json) {
+    final Map<String, dynamic> map = jsonDecode(json);
+    return TagResponse.fromJson(map);
+  }
 }
 
 class BooksTagsResponse {

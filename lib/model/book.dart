@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Book {
   final String title;
   final String? author;
@@ -40,6 +42,15 @@ class Book {
       'publication_date': publicationDate?.toIso8601String(),
       'language': language,
     };
+  }
+
+  String serialize() {
+    return jsonEncode(toJson());
+  }
+
+  static Book deserialize(String json) {
+    final Map<String, dynamic> map = jsonDecode(json);
+    return Book.fromJson(map);
   }
 
   Book copyWith({

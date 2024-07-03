@@ -8,7 +8,7 @@ import 'package:my_library/Services/util.dart';
 import 'package:my_library/Services/auth.dart';
 import 'package:my_library/View/header.dart';
 import 'package:my_library/model/tag.dart';
-import 'package:my_library/controller/tag.dart';
+import 'package:my_library/Services/books_info.dart';
 
 
 
@@ -80,9 +80,10 @@ class _BookListPageState extends State<BookListPage> {
 
   getData() async {
     try {
-      accountBookResponses = await Books().getBooks();
-      List<TagResponse> tagresponse = await Tag().getTags();
+      List<TagResponse> tagresponse = await BooksInfo().updateTags();
       tags = tagresponse.map((e) => e.name).toList();
+
+      accountBookResponses = await BooksInfo().updateBooks();
       if (accountBookResponses.isNotEmpty) {
         setState(() {
           isLoaded = true;

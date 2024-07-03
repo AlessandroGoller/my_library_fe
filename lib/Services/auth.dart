@@ -177,6 +177,7 @@ class Auth {
     await storage.delete(key: 'access_token');
     await storage.delete(key: 'refresh_token');
     await storage.delete(key: 'expiry_time');
+    await storage.deleteAll();
     _token = null;
     _refreshToken = null;
     _expiryTime = null;

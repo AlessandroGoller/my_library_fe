@@ -9,6 +9,7 @@ import 'package:my_library/model/tag.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:my_library/Services/books_info.dart';
 
 
 class BookView extends StatefulWidget {
@@ -21,7 +22,6 @@ class BookView extends StatefulWidget {
 }
 
 class _BookViewState extends State<BookView> {
-  late Future<List<String>> _tagsFuture;
   bool isEditing = false;
   bool showTags = false;
   late TextEditingController titleController;
@@ -41,8 +41,7 @@ class _BookViewState extends State<BookView> {
   void initState() {
     super.initState();
     currentResponse = widget.accountBookResponse;
-    currentTags = [];
-    _tagsFuture = getBooksTagsByIdAccountBook(currentResponse.idAccountBook);
+    currentTags = TextEditingController(text: currentResponse.accountBook.tags?.join(',')).text.split(',').toList();
     _existingTagsFuture = getTags();
     titleController = TextEditingController(text: currentResponse.book.title);
     authorController = TextEditingController(text: currentResponse.book.author);
@@ -122,6 +121,7 @@ class _BookViewState extends State<BookView> {
       isPhysicalController.text = currentResponse.accountBook.isPhysical?.toString() ?? '';
       readedatController.text = currentResponse.accountBook.readedAt?.toString() ?? '';
     });
+    await BooksInfo().updateAll();
   }
 
   void deleteBooksTags(String tag) async {
@@ -162,6 +162,8 @@ class _BookViewState extends State<BookView> {
                           setState(() {
                             deleting = false;
                           });
+
+                          await BooksInfo().updateAll();
 
                           Navigator.of(context).pop();
                           Navigator.pop(context);
@@ -214,6 +216,8 @@ class _BookViewState extends State<BookView> {
                             deleting = false;
                           });
 
+                          await BooksInfo().updateAll();
+
                           Navigator.of(context).pop();
                           Navigator.pop(context);
                         },
@@ -234,6 +238,8 @@ class _BookViewState extends State<BookView> {
           idAccountBook: currentResponse.idAccountBook,
         );
         BooksTagsResponse addedtag = await Tag().addBooksTags(createBooksTags);
+
+        await BooksInfo().updateAll();
 
         setState(() {
           currentTags.add(addedtag.tag.name);
@@ -274,6 +280,7 @@ class _BookViewState extends State<BookView> {
     if (confirmed == true) {
       try {
         await Tag().deleteTag(tag.idTag);
+        await BooksInfo().updateAll();
         setState(() {
           _existingTagsFuture = getTags(); // Refresh the tag list
         });
@@ -284,6 +291,9 @@ class _BookViewState extends State<BookView> {
   }
 
   void _showTagDialog() {
+    setState(() {
+      _existingTagsFuture = getTags(); // Refresh the tag list
+    });
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -372,161 +382,148 @@ class _BookViewState extends State<BookView> {
           ),
         ],
       ),
-      body: FutureBuilder<List<String>>(
-      future: _tagsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          currentTags = snapshot.data ?? [];
-          return Center(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 40),
-                  SizedBox(
-                    width: screenWidth * 0.4,
-                    height: screenHeight * 0.3,
-                    child: Image.network(
-                      currentResponse.book.cover ?? '',
-                      fit: BoxFit.cover,
-                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                        return Image.network(
-                          'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
-                          scale: 1.0,
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    currentResponse.book.title,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    currentResponse.book.author ?? '',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Published: ${currentResponse.book.publicationDate?.day.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.month.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.year}',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _showStorylineDialog,
-                    child: Text('Mostra Trama'),
-                  ),
-                  SizedBox(height: 10),
-                  Wrap(
-                        children: currentTags.map((tag) => Chip(
-                          label: Text(tag),
-                          onDeleted: () => deleteBooksTags(tag),
-                        )).toList(),
-                      ),
-                  
-                  if (isEditing) 
-                    Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _showTagDialog, // Chiama la funzione per mostrare il dialogo
-                          child: Text('Select Tag'),
-                        ),
-                        TextField(
-                          controller: tagsController,
-                          decoration: InputDecoration(
-                            labelText: 'Add a new tag',
-                            suffixIcon: IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () => addTag(tagsController.text),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  SizedBox(height: 10),
-                  RatingBar.builder(
-                    initialRating: currentResponse.accountBook.rating?.toDouble() ?? 0,
-                    minRating: 1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: false,
-                    itemCount: 5,
-                    itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                    ignoreGestures: !isEditing,  // Disabilita le modifiche quando non è in modalità di modifica
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
-                    onRatingUpdate: (rating) {
-                      if (isEditing) {
-                        setState(() {
-                          currentResponse = currentResponse.copyWith(
-                            accountBook: currentResponse.accountBook.copyWith(rating: rating.toInt()),
-                          );
-                        });
-                      }
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  isEditing
-                    ? TextField(
-                        controller: notesController,
-                        decoration: InputDecoration(labelText: 'Notes'),
-                      )
-                    : Text(
-                        'Notes: ${currentResponse.accountBook.notes ?? ''}',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                  SizedBox(height: 10),
-                  isEditing
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Is Physical: '),
-                          Checkbox(
-                            value: currentResponse.accountBook.isPhysical,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                currentResponse = currentResponse.copyWith(
-                                  accountBook: currentResponse.accountBook.copyWith(isPhysical: value ?? false),
-                                );
-                              });
-                            },
-                          ),
-                        ],
-                      )
-                    : Text(
-                        'Is Physical?: ${currentResponse.accountBook.isPhysical == true ? '✔️' : '❌'}',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                  SizedBox(height: 10),
-                  isEditing
-                    ? TextField(
-                        controller: readedatController,
-                        decoration: InputDecoration(labelText: 'Readed At'),
-                        readOnly: true,
-                        onTap: () async {
-                          await _selectDate(context);
-                        },
-                      )
-                    : Text(
-                        'Readed At: ${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                ],
+      body: Center(
+  child: SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(height: 40),
+        SizedBox(
+          width: screenWidth * 0.4,
+          height: screenHeight * 0.3,
+          child: Image.network(
+            currentResponse.book.cover ?? '',
+            fit: BoxFit.cover,
+            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+              return Image.network(
+                'https://thumbs.dreamstime.com/b/stack-books-isolated-white-background-34637153.jpg',
+                scale: 1.0,
+              );
+            },
+          ),
+        ),
+        SizedBox(height: 20),
+        Text(
+          currentResponse.book.title,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 10),
+        Text(
+          currentResponse.book.author ?? '',
+          style: TextStyle(fontSize: 18),
+        ),
+        SizedBox(height: 10),
+        Text(
+          'Published: ${currentResponse.book.publicationDate?.day.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.month.toString().padLeft(2, '0')}/${currentResponse.book.publicationDate?.year}',
+          style: TextStyle(fontSize: 18),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _showStorylineDialog,
+          child: Text('Mostra Trama'),
+        ),
+        SizedBox(height: 10),
+        Wrap(
+          children: currentTags.map((tag) => Chip(
+            label: Text(tag),
+            onDeleted: () => deleteBooksTags(tag),
+          )).toList(),
+        ),
+        if (isEditing) 
+          Column(
+            children: [
+              ElevatedButton(
+                onPressed: _showTagDialog,
+                child: Text('Select Tag'),
               ),
+              TextField(
+                controller: tagsController,
+                decoration: InputDecoration(
+                  labelText: 'Add a new tag',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () => addTag(tagsController.text),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        SizedBox(height: 10),
+        RatingBar.builder(
+          initialRating: currentResponse.accountBook.rating?.toDouble() ?? 0,
+          minRating: 1,
+          direction: Axis.horizontal,
+          allowHalfRating: false,
+          itemCount: 5,
+          itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+          ignoreGestures: !isEditing,
+          itemBuilder: (context, _) => Icon(
+            Icons.star,
+            color: Colors.amber,
+          ),
+          onRatingUpdate: (rating) {
+            if (isEditing) {
+              setState(() {
+                currentResponse = currentResponse.copyWith(
+                  accountBook: currentResponse.accountBook.copyWith(rating: rating.toInt()),
+                );
+              });
+            }
+          },
+        ),
+        SizedBox(height: 10),
+        isEditing
+          ? TextField(
+              controller: notesController,
+              decoration: InputDecoration(labelText: 'Notes'),
+            )
+          : Text(
+              'Notes: ${currentResponse.accountBook.notes ?? ''}',
+              style: TextStyle(fontSize: 18),
             ),
-          );
-        }
-      },
+        SizedBox(height: 10),
+        isEditing
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Is Physical: '),
+                Checkbox(
+                  value: currentResponse.accountBook.isPhysical,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      currentResponse = currentResponse.copyWith(
+                        accountBook: currentResponse.accountBook.copyWith(isPhysical: value ?? false),
+                      );
+                    });
+                  },
+                ),
+              ],
+            )
+          : Text(
+              'Is Physical?: ${currentResponse.accountBook.isPhysical == true ? '✔️' : '❌'}',
+              style: TextStyle(fontSize: 18),
+            ),
+        SizedBox(height: 10),
+        isEditing
+          ? TextField(
+              controller: readedatController,
+              decoration: InputDecoration(labelText: 'Readed At'),
+              readOnly: true,
+              onTap: () async {
+                await _selectDate(context);
+              },
+            )
+          : Text(
+              'Readed At: ${currentResponse.accountBook.readedAt?.day.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.month.toString().padLeft(2, '0')}/${currentResponse.accountBook.readedAt?.year}',
+              style: TextStyle(fontSize: 18),
+            ),
+      ],
     ),
+  ),
+),
     );
   }
 }

@@ -1,5 +1,7 @@
 
 import 'package:my_library/model/book.dart';
+import 'dart:convert';
+
 
 class AccountBookResponse {
   final int idAccountBook;
@@ -23,6 +25,15 @@ class AccountBookResponse {
       'book': book.toJson(),
       'account_book': accountBook.toJson(),
     };
+  }
+
+  String serialize() {
+    return jsonEncode(toJson());
+  }
+
+  static AccountBookResponse deserialize(String json) {
+    final Map<String, dynamic> map = jsonDecode(json);
+    return AccountBookResponse.fromJson(map);
   }
 
   AccountBookResponse copyWith({
@@ -76,6 +87,15 @@ class AccountBookBasic {
       'readed_at': readedAt?.toIso8601String(),
       'tags': tags,
     };
+  }
+
+  String serialize() {
+    return jsonEncode(toJson());
+  }
+
+  static AccountBookBasic deserialize(String json) {
+    final Map<String, dynamic> map = jsonDecode(json);
+    return AccountBookBasic.fromJson(map);
   }
 
   AccountBookBasic copyWith({
