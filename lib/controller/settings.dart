@@ -33,5 +33,23 @@ class Settings {
       throw Exception('Error in downloading data');
     }
   }
+
+  Future<void> deleteData() async {
+    String baseUrl = Config().backendBaseUrl;
+    try {
+      var url = Uri.parse("$baseUrl/v1/settings/delete-all-data");
+      final response = await http.delete(
+        url,
+        headers: Auth().authHeaders(),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete data');
+      }
+      FlutterBugfender.info("Data deleted");
+    } catch (e) {
+      FlutterBugfender.error("No data deleted: $e");
+      throw Exception('Error in deleting data');
+    }
+  }
 }
 

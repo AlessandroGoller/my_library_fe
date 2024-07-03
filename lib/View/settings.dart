@@ -3,7 +3,7 @@ import 'package:my_library/controller/settings.dart';
 import 'dart:io';
 import 'package:my_library/Services/util.dart';
 import 'package:my_library/Services/permission_helper.dart';
-
+import 'package:my_library/Services/auth.dart';
 
 
 class SettingsView extends StatelessWidget {
@@ -58,14 +58,13 @@ class SettingsView extends StatelessWidget {
 
   void _downloadData(BuildContext context) async {
     try {
-      // Initiate download
-      Settings settings = Settings();
-      File data = await settings.downloadData();
-
       // Show snackbar message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Data download initiated')),
       );
+
+      // Initiate download
+      File data = await Settings().downloadData();
 
       String filename = 'personal_data.zip';
 
@@ -94,10 +93,25 @@ class SettingsView extends StatelessWidget {
   }
 
   void _deleteData(BuildContext context) {
+    try {
+      // Initiate data deletion
+      Settings().deleteData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data deletion initiated')),
+      );
+    } catch (e) {
+      // Handle deletion errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting data: $e')),
+      );
+      return;
+    }
     // Implement logic to delete personal data
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Data deletion initiated')),
+      SnackBar(content: Text('Data deletion completed')),
     );
+    Auth().logout();
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   Future<void> _confirmAction(

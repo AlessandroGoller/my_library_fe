@@ -7,7 +7,9 @@ flutter run --web-renderer html
 
 # TO DO:
 - tema nero
-- add logout
+- book view ricarica le informazioni del libro, ma sono gia presenti, saltare quella parte
+- fare in modo che in book_management quando si apre si richedano le varie informazioni senza dover cliccare il tasto update
+
 
 # To start
 - select device

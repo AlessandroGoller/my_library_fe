@@ -160,10 +160,10 @@ class _BookListPageState extends State<BookListPage> {
                     });
                     Navigator.of(context).pop();
                   },
-                  items: tags.map((TagResponse tag) {
+                  items: tags.map((String tag) {
                     return DropdownMenuItem<String>(
-                      value: tag.name,
-                      child: Text(tag.name),
+                      value: tag,
+                      child: Text(tag),
                     );
                   }).toList(),
                   hint: Text('Seleziona un tag'),
