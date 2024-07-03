@@ -21,6 +21,9 @@ dependencies:
   flutter_rating_bar: ^4.0.0
   flutter_widget_from_html_core: ^0.8.4
   html_unescape: ^2.0.0
+  path_provider: any
+  permission_handler: any
+  share_plus: any
 
 dev_dependencies:
   flutter_test:

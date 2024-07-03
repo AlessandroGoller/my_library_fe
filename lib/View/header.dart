@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_library/Services/auth.dart';
+import 'package:my_library/View/settings.dart';
 
 class MyHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
@@ -15,8 +16,11 @@ class MyHeader extends StatelessWidget implements PreferredSizeWidget {
                 Auth().logout();
                 Navigator.pushReplacementNamed(context, '/');
               case 'settings':
-                // Gestisci le impostazioni qui
-                break;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsView()),
+                );
+
               // Aggiungi altri casi se necessario
             }
           },
