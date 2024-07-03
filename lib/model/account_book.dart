@@ -38,7 +38,6 @@ class AccountBookResponse {
   }
 }
 
-
 class AccountBookBasic {
   final bool? isFavorite;
   final bool? isWishlist;
@@ -46,6 +45,7 @@ class AccountBookBasic {
   final int? rating;
   final bool? isPhysical;
   final DateTime? readedAt;
+  final List<String>? tags;
 
   AccountBookBasic({
     this.isFavorite,
@@ -54,6 +54,7 @@ class AccountBookBasic {
     this.rating,
     this.isPhysical,
     this.readedAt,
+    this.tags,
   });
 
   AccountBookBasic.fromJson(Map<String, dynamic> json)
@@ -62,7 +63,8 @@ class AccountBookBasic {
         notes = json['notes'],
         rating = json['rating'],
         isPhysical = json['is_physical'],
-        readedAt = json['readed_at'] != null ? DateTime.parse(json['readed_at']) : null;
+        readedAt = json['readed_at'] != null ? DateTime.parse(json['readed_at']) : null,
+        tags = json['tags'] != null ? List<String>.from(json['tags']) : null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -72,8 +74,10 @@ class AccountBookBasic {
       'rating': rating,
       'is_physical': isPhysical,
       'readed_at': readedAt?.toIso8601String(),
+      'tags': tags,
     };
   }
+
   AccountBookBasic copyWith({
     bool? isFavorite,
     bool? isWishlist,
@@ -81,6 +85,7 @@ class AccountBookBasic {
     int? rating,
     bool? isPhysical,
     DateTime? readedAt,
+    List<String>? tags,
   }) {
     return AccountBookBasic(
       isFavorite: isFavorite ?? this.isFavorite,
@@ -89,6 +94,7 @@ class AccountBookBasic {
       rating: rating ?? this.rating,
       isPhysical: isPhysical ?? this.isPhysical,
       readedAt: readedAt ?? this.readedAt,
+      tags: tags ?? this.tags,
     );
   }
 }

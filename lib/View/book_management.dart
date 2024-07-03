@@ -7,6 +7,10 @@ import 'package:my_library/View/auth.dart';
 import 'package:my_library/Services/util.dart';
 import 'package:my_library/Services/auth.dart';
 import 'package:my_library/View/header.dart';
+import 'package:my_library/model/tag.dart';
+import 'package:my_library/controller/tag.dart';
+
+
 
 class BookManagementApp extends StatefulWidget {
   const BookManagementApp({Key? key}) : super(key: key);
@@ -58,6 +62,7 @@ class BookListPage extends StatefulWidget {
 class _BookListPageState extends State<BookListPage> {
   bool _isLibraryView = true;
   List<AccountBookResponse> accountBookResponses = [];
+  List<String> tags = [];
   var isLoaded = false;
   String _searchText = '';
 
@@ -76,7 +81,8 @@ class _BookListPageState extends State<BookListPage> {
   getData() async {
     try {
       accountBookResponses = await Books().getBooks();
-    
+      List<TagResponse> tagresponse = await Tag().getTags();
+      tags = tagresponse.map((e) => e.name).toList();
       if (accountBookResponses.isNotEmpty) {
         setState(() {
           isLoaded = true;
@@ -103,8 +109,8 @@ class _BookListPageState extends State<BookListPage> {
     // Filtra per tag
     if (_selectedTag != null) {
       filteredBooks = filteredBooks.where((accountBookResponse) {
-        final book = accountBookResponse.book;
-        final tagMatch = book.genres?.toLowerCase().contains(_selectedTag?.toLowerCase() ?? '') ?? false;
+        final accountBook = accountBookResponse.accountBook;
+        final tagMatch = accountBook.tags?.contains(_selectedTag) ?? false;
         return tagMatch;
       }).toList();
     }
@@ -146,16 +152,21 @@ class _BookListPageState extends State<BookListPage> {
             child: Column(
               children: [
                 // Filtro per tag
-                TextField(
-                  onChanged: (value) {
+                DropdownButton<String>(
+                  value: _selectedTag,
+                  onChanged: (String? newValue) {
                     setState(() {
-                      _selectedTag = value;
+                      _selectedTag = newValue;
                     });
                     Navigator.of(context).pop();
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Cerca per tag',
-                  ),
+                  items: tags.map((TagResponse tag) {
+                    return DropdownMenuItem<String>(
+                      value: tag.name,
+                      child: Text(tag.name),
+                    );
+                  }).toList(),
+                  hint: Text('Seleziona un tag'),
                 ),
                 // Filtro per anno di lettura
                 DropdownButton<int>(
