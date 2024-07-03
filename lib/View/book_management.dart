@@ -322,6 +322,13 @@ class _BookListPageState extends State<BookListPage> {
           ),
         ],
       ),
+      // total number of books
+      bottomNavigationBar: BottomAppBar(
+        child: Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: Text('Total books: ${getFilteredBooks().length}'),
+        ),
+      ),
       floatingActionButton: Stack(
         children: [
           Positioned(

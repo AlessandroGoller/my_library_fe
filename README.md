@@ -10,7 +10,7 @@ flutter run --web-renderer html
 - book view ricarica le informazioni del libro, ma sono gia presenti, saltare quella parte
 - fare in modo che in book_management quando si apre si richedano le varie informazioni senza dover cliccare il tasto update
 - non mi fa impazzire lo split dei libri cosi: ;; e quello dei tag cosi ;
-
+- aggiungere un time, che in automatico fa update dei dati
 
 # To start
 - select device
