@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 class Book {
   final String title;
@@ -9,6 +10,7 @@ class Book {
   final String? storyline;
   final DateTime? publicationDate;
   final String? language;
+  final Int? pageCount;
 
   Book({
     required this.title,
@@ -19,6 +21,7 @@ class Book {
     this.storyline,
     this.publicationDate,
     this.language,
+    this.pageCount,
   });
 
   Book.fromJson(Map<String, dynamic> json)
@@ -29,7 +32,8 @@ class Book {
         idGoogle = json['id_google'],
         storyline = json['storyline'],
         publicationDate = json['publication_date'] != null ? DateTime.parse(json['publication_date']) : null,
-        language = json['language'];
+        language = json['language'],
+        pageCount = json['page_count'];
 
   Map<String, dynamic> toJson() {
     return {
@@ -41,6 +45,7 @@ class Book {
       'storyline': storyline,
       'publication_date': publicationDate?.toIso8601String(),
       'language': language,
+      'page_count': pageCount,
     };
   }
 
@@ -62,6 +67,7 @@ class Book {
     String? storyline,
     DateTime? publicationDate,
     String? language,
+    Int? pageCount,
   }) {
     return Book(
       title: title ?? this.title,
@@ -72,6 +78,7 @@ class Book {
       storyline: storyline ?? this.storyline,
       publicationDate: publicationDate ?? this.publicationDate,
       language: language ?? this.language,
+      pageCount: pageCount ?? this.pageCount,
     );
   }
 }
