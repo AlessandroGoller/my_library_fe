@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:my_library/controller/book.dart';
 import 'package:my_library/model/account_book.dart';
@@ -258,75 +260,90 @@ class _BookListPageState extends State<BookListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchText = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      labelText: 'Search',
-                      border: OutlineInputBorder(),
-                    ),
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverPersistentHeader(
+              pinned: false,
+              floating: true,
+              delegate: _SliverAppBarDelegate(
+                minHeight: 120,
+                maxHeight: 120,
+                child: Container(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                onChanged: (value) {
+                                  setState(() {
+                                    _searchText = value;
+                                  });
+                                },
+                                decoration: const InputDecoration(
+                                  labelText: 'Search',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () {
+                                _showFilterDialog();
+                              },
+                              child: const Text('Filtra'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isLibraryView = true;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(),
+                            child: const Text('Libreria'),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isLibraryView = false;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(),
+                            child: const Text('Tabella'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    _showFilterDialog();
-                  },
-                  style: ElevatedButton.styleFrom(),
-                  child: const Text('Filtra'),
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _isLibraryView = true;
-                  });
-                },
-                style: ElevatedButton.styleFrom(),
-                child: const Text('Libreria'),
-              ),
-              const SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _isLibraryView = false;
-                  });
-                },
-                style: ElevatedButton.styleFrom(),
-                child: const Text('Tabella'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: _isLibraryView
-                ? LibraryView(getFilteredBooks())
-                : TableView(getFilteredBooks()),
-          ),
-        ],
-      ),
-      // total number of books
-      bottomNavigationBar: BottomAppBar(
-        child: Padding(
-          padding: const EdgeInsets.all(2.0),
-          child: Text('Total books: ${getFilteredBooks().length}'),
+          ];
+        },
+        body: Column(
+          children: [
+            Expanded(
+              child: _isLibraryView
+                  ? LibraryView(getFilteredBooks())
+                  : TableView(getFilteredBooks()),
+            ),
+            Container(
+              padding: EdgeInsets.all(16),
+              alignment: Alignment.center,
+              child: Text('Total books: ${getFilteredBooks().length}'),
+            ),
+          ],
         ),
       ),
       floatingActionButton: Stack(
@@ -354,5 +371,34 @@ class _BookListPageState extends State<BookListPage> {
         ],
       ),
     );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+  @override
+  double get minExtent => minHeight;
+  @override
+  double get maxExtent => max(maxHeight, minHeight);
+  @override
+  Widget build(
+      BuildContext context, 
+      double shrinkOffset, 
+      bool overlapsContent) 
+  {
+    return SizedBox.expand(child: child);
+  }
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
   }
 }
